@@ -16,20 +16,24 @@ void addNode(tNode*&, int);
 void fileInput(tNode*&);
 
 int main(){
+  //create head pointer, running boolean, char[] input, the number input
   tNode* head = NULL;
   bool running = true;
   char input[60];
   int number;
   
-  while(running){
-    for(int i = 0; i < 60; i++){
+  while(running){//while running is true
+    for(int i = 0; i < 60; i++){//clear input
       input[i] = '\0';
     }
 
+    //get input 
     cout << "What would you like to do? (insert, print, quit)" << endl;
     cin.get(input, 60);
     cin.get();
 
+
+    //call functions based on input to perform stated actions
     if(strcmp(input, "print") == 0){
       printWrapper(head);
     }
@@ -68,7 +72,7 @@ int main(){
   return 0;
 }
 
-void reColor(tNode* node){
+void reColor(tNode* node){//check the color of a node and make it the opposite
   if(node->isRed()){
     node->setColor(false);
   }
@@ -78,31 +82,40 @@ void reColor(tNode* node){
 }
 
 void rotateLeft(tNode* node, tNode* &head){
+  //rightT is node's Right child
   tNode* rightT = node->getRChild();
 
-  if(node->getRChild() != NULL){
+  if(node->getRChild() != NULL){//if the right child exists
+    //set node's right child to rightT's left child
     node->setRChild(rightT->getLChild());
-    if(rightT->getLChild()){
+    if(rightT->getLChild()){//if rightT has a left child
+      //set the child's parent as node
       rightT->getLChild()->setParent(node);
     }
+    //set rightT's parent to node's parent
     rightT->setParent(node->getParent());
 
-    if(node->getParent() == NULL){
+    if(node->getParent() == NULL){//if node is the head
+      //set rightT to head
       head = rightT;
     }
-    else if(node == node->getParent()->getLChild()){
+    else if(node == node->getParent()->getLChild()){//if node is left child of its parent
+      //set rightT as the new left child
       node->getParent()->setLChild(rightT);
     }
-    else{
+    else{//if node is right child of its parent
+      //set rightT as the new right child
       node->getParent()->setRChild(rightT);
     }
-    
+
+    //set node as rightT's left child
     rightT->setLChild(node);
+    //set node's parent as rightT
     node->setParent(rightT);
   }
 }
 
-void rotateRight(tNode* node, tNode* &head){
+void rotateRight(tNode* node, tNode* &head){//opposite of rotate left
   tNode* leftT = node->getLChild();
   
   if(node->getLChild() != NULL){
@@ -131,9 +144,10 @@ void insert(tNode* parent, tNode* &head, int data, bool isLChild){
   tNode* root = head;
   tNode* grandParent = NULL;
   tNode* uncle = NULL;
-  if(root){
+  if(root){//if there is a tree
+    //set the grandparent
     grandParent = parent->getParent();
-    //get uncle
+    //get uncle if there is a grandparent
     if(grandParent){
       if(grandParent->getLChild() == parent){
 	uncle = grandParent->getRChild();
@@ -146,19 +160,21 @@ void insert(tNode* parent, tNode* &head, int data, bool isLChild){
 
   
   
-  if(root == NULL){
+  if(root == NULL){//if there is no tree
+    //create newnode and set it as the head of the tree
     tNode* newnode = new tNode();
     newnode->setData(data);
+    //set color as black
     newnode->setColor(false);
     head = newnode;
   }
-  else if(root){
+  else if(root){//if there is a tree, add the newnode to the parent node
     tNode* newParent = parent;
     tNode* newnode = new tNode();
     newnode->setData(data);
     newnode->setParent(newParent);
     
-    if(isLChild){
+    if(isLChild){//determine which child newnode should be
       parent->setLChild(newnode);
     }
     else{
@@ -167,34 +183,34 @@ void insert(tNode* parent, tNode* &head, int data, bool isLChild){
 
     
     while(parent->isRed() && newnode->isRed()){//if parent and newnode are red
-      cout << "test 1" << endl;//DELETE LATER
       if(uncle != NULL){
-	cout << "test 2" << endl;//DELETE LATER
 	if(uncle->isRed()){//if uncle is red
-	  cout << "red U" << endl;//DELETE LATER
+	  //recolor and recheck
 	  reColor(uncle);
 	  reColor(parent);
 	  if(grandParent != root){
 	    reColor(grandParent);
 	  }
-
+	  //reset the newnode
 	  newnode = grandParent;
-	  if(!newnode->isRed()){
+	  if(!newnode->isRed()){//check if newnode is red
 	    break;
 	  }
+	  //reset parent
 	  parent = newnode->getParent();
-	  if(!parent->isRed()){
+	  if(!parent->isRed()){//check if parent is red
 	    break;
 	  }
+	  //reset grandparent
 	  grandParent = parent->getParent();
-	  if(grandParent->getRChild() != parent){
+	  if(grandParent->getRChild() != parent){//reset uncle
 	    uncle = grandParent->getRChild();
 	  }
 	  else{
 	    uncle = grandParent->getLChild();
 	  }
 	  
-	  if(parent->getRChild() == newnode){
+	  if(parent->getRChild() == newnode){//check if newnode is left or right child
 	    isLChild = false;
 	  }
 	  else{
@@ -204,15 +220,18 @@ void insert(tNode* parent, tNode* &head, int data, bool isLChild){
 	}
 	
 	else if(!uncle->isRed()){//if uncle is black
-	  cout << "Black U" << endl;//DELETE LATER
 	  if(parent == grandParent->getRChild()){//if parent is the right child
 	    if(isLChild){//if newnode is a left child
+	      //rotate right for to make RR case
 	      rotateRight(parent, head);
+	      //rotate left to balance tree
 	      rotateLeft(grandParent, head);
+	      //recolor
 	      reColor(grandParent);
 	      reColor(newnode);
 	    }
 	    else{//if newnode is a right child
+	      //already RR case, rotate to balance and recolor
 	      rotateLeft(grandParent, head);
 	      reColor(grandParent);
 	      reColor(parent);
@@ -220,49 +239,47 @@ void insert(tNode* parent, tNode* &head, int data, bool isLChild){
 	  }
 	  else{//if parent is the left child
 	    if(!isLChild){//if newnode is a right child
+	      //rotate left to make LL case
 	      rotateLeft(parent, head);
+	      //rotate right to balance tree
 	      rotateRight(grandParent, head);
+	      //recolor 
 	      reColor(grandParent);
 	      reColor(newnode);
 	    }
 	    else{
+	      //already LL case, rotate right to balance and recolor
 	      rotateRight(grandParent, head);
 	      reColor(grandParent);
 	      reColor(parent);
 	    }
 	  }
+	  //break out of while loop
 	  break;
 	}
       }
-      else{//if uncle is null (black)
-	cout << "NULL U" << endl;//DELETE LATER
+      else{//if uncle is null (black) (same as if uncle is black)
 	  if(parent == grandParent->getRChild()){//if parent is the right child
-	    cout << "right parent" << endl;//DELETE LATER
 	    if(isLChild){//if newnode is a left child
-	      cout << "left newnode" << endl;//DELETE LATER
 	      rotateRight(parent, head);
 	      rotateLeft(grandParent, head);
 	      reColor(grandParent);
 	      reColor(newnode);
 	    }
 	    else{//if newnode is a right child
-	      cout << "Right newnode" << endl;//DELETE LATER
 	      rotateLeft(grandParent, head);
 	      reColor(grandParent);
 	      reColor(parent);
 	    }
 	  }
 	  else{//if parent is the left child
-	    cout << "left parent" << endl;//DELETE LATER
 	    if(!isLChild){//if newnode is a right child
-	      cout << "right newnode" << endl;//DELETE LATER
 	      rotateLeft(parent, head);
 	      rotateRight(grandParent, head);
 	      reColor(grandParent);
 	      reColor(newnode);
 	    }
 	    else{//if newnode is a left child
-	      cout << "left newnode" << endl;//DELETE LATER
 	      rotateRight(grandParent, head);
 	      reColor(grandParent);
 	      reColor(parent);
@@ -275,27 +292,31 @@ void insert(tNode* parent, tNode* &head, int data, bool isLChild){
 }
 
 void addNode(tNode* &head, int data){
-  if(head == NULL){
+  if(head == NULL){//if there is no head call insert immediately
     insert(head, head, data, true);
   }
-  else{
+  else{//walk down the tree to find where the data should be inserted
     tNode* temp = head;
-    while(temp != NULL){
-      if(data < temp->getData()){
-	if (temp->getLChild() == NULL){
+    while(temp != NULL){//while the end of a branch hasn't been reached
+      if(data < temp->getData()){//if data is smaller than temp
+	if (temp->getLChild() == NULL){//if currently at the end of the branch
+	  //call insert and set temp to null
 	  insert(temp, head, data, true);
 	  temp = NULL;
 	}
-	else{
+	else{//if not at the end of a branch
+	  //advance down the tree
 	  temp = temp->getLChild();
 	}
       }
-      else if(data >= temp->getData()){
-	if(temp->getRChild() == NULL){
+      else if(data >= temp->getData()){//if data is greater than or equal to temp
+	if(temp->getRChild() == NULL){//if currently at the end of the branch
+	  //call insert and set temp to null
 	  insert(temp, head, data, false);
 	  temp = NULL;
 	}
-	else{
+	else{//if not at the end of a branch
+	  //advance down the tree
 	  temp = temp->getRChild();
 	}
       }
@@ -303,17 +324,20 @@ void addNode(tNode* &head, int data){
   }
 }
 
-void printWrapper(tNode* root){
+void printWrapper(tNode* root){//wrapper for print function
   print(root, 0);
   cout << endl;
 }
 
 void print(tNode* root, int count){
-  if(root){
+  if(root){//if root exists
+    //call print on right child incrementing count
     print(root->getRChild(), count+1);
+    //output number of indents equal to the count
     for(int i = 0; i < count; i++){
       cout << "\t";
     }
+    //output the data and the color of the node
     cout << root->getData();
     if(root->isRed()){
       cout << "R" << endl;
@@ -321,6 +345,7 @@ void print(tNode* root, int count){
     else{
       cout << "B" << endl;
     }
+    //call print on the left child incrementing count by 1
     print(root->getLChild(), count+1);
   }
 }
@@ -331,14 +356,17 @@ void fileInput(tNode* &head){
   cout << "Enter the name of the file you want to use (example.txt)" << endl;
 
   int tempNum = 0;
-  
+
+  //get name of file
   cin.get(fileName, 60);
   cin.get();
 
+  //create file object
   ifstream file (fileName);
 
   if(file.is_open()){
     while(!file.eof()){
+      //add each number in file into the tree
       file >> tempNum;
       addNode(head, tempNum);
     }
