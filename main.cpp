@@ -14,6 +14,13 @@ void printWrapper(tNode*);
 void print(tNode*, int);
 void addNode(tNode*&, int);
 void fileInput(tNode*&);
+bool deleteSearch(tNode*&, tNode*, tNode*, int);
+void deleteSWrapper(tNode*&, int);
+void deleteNode(tNode*&, tNode*, tNode*, int);
+void repairNode(tNode*, tNode*&);
+//void repairWrapper(tNode*, tNode*);
+void searchTWrapper(tNode*, int);
+bool search(tNode*, int);
 
 int main(){
   //create head pointer, running boolean, char[] input, the number input
@@ -28,7 +35,7 @@ int main(){
     }
 
     //get input 
-    cout << "What would you like to do? (insert, print, quit)" << endl;
+    cout << "What would you like to do? (insert, print, quit, delete, search)" << endl;
     cin.get(input, 60);
     cin.get();
 
@@ -59,6 +66,18 @@ int main(){
     }
     else if(strcmp(input, "quit") == 0){
       running = false;
+    }
+    else if(strcmp(input, "delete") == 0){
+      cout << "What number do you want to delete? " << endl;
+      cin >> number;
+      cin.get();
+      deleteSWrapper(head, number);
+    }
+    else if(strcmp(input, "search") == 0){
+      cout << "What number would you like to search for?" << endl;
+      cin >> number;
+      cin.get();
+      searchTWrapper(head, number);
     }
   }
 
@@ -372,3 +391,307 @@ void fileInput(tNode* &head){
     }
   }
 }
+
+void deleteSWrapper(tNode* &root, int data){
+  if(deleteSearch(root, root, root, data)){
+    cout << data << " was successfully deleted." << endl;
+  }
+  else{
+    cout << data << " was not found." << endl;
+  }
+}
+
+bool deleteSearch(tNode* &root, tNode* parent, tNode* child, int data){
+  if(!child){
+    return false;
+  }
+  else{
+    if(data == child->getData()){
+      if(parent == child){
+	//	deleteRoot(root);
+      }
+      else{
+	cout << "node found" << endl; //DELETE LATER
+	deleteNode(root, parent, child, data);
+      }
+      return true;
+    }
+    else if(data < child->getData()){
+      return deleteSearch(root, child, child->getLChild(), data);
+    }
+    else if(data >= child->getData()){
+      return deleteSearch(root, child, child->getRChild(), data);
+    }
+  }
+
+}
+
+void deleteNode(tNode* &head, tNode* parent, tNode* child, int data){
+  tNode* temp;
+  tNode* previous;
+  bool isLChild;
+
+  //determine if child is left or right
+  if(parent->getLChild()){
+    if(parent->getLChild()->getData() == data){
+      isLChild = true;
+    }
+  }
+  else if(parent->getRChild()){
+    if(parent->getRChild()->getData() == data){
+      isLChild = false;
+    }
+  }
+
+  //CASE 1 (No children)
+  if(child->getLChild() == NULL && child->getRChild() == NULL){
+    cout << "CASE 1" << endl; //DELETE LATER
+    if(isLChild){//if left child
+      if(child->isRed()){//deleted node is red
+	delete child;
+	parent->setLChild(NULL);
+      }
+      else{//deleted node is black
+	//	repairWrapper(head, child);
+      }
+    }
+    else{//if right child
+      if(child->isRed()){//deleted node is red
+	delete child;
+	parent->setRChild(NULL);
+      }
+      else{//deleted node is black
+
+      }
+    }
+  }
+  //Case 2 (Right child absent)
+  else if(child->getRChild() == NULL){
+    cout << "CASE 2" << endl; //DELETE LATER
+    if(isLChild){//child is LChild
+      if(child->isRed()){//child is red
+	parent->setLChild(child->getLChild());
+	delete child;
+      }
+      else{//child is black
+	if(child->getLChild()->isRed()){
+	  child->setData(child->getLChild()->getData());
+	  delete child->getLChild();
+	  child->setLChild(NULL);
+	}
+	else{
+
+	}
+      }
+    }
+    else{//child is RChild
+      if(child->isRed()){//child is red
+	parent->setRChild(child->getLChild());
+	delete child;
+      }
+      else{//child is black
+	if(child->getLChild()->isRed()){
+	  child->setData(child->getLChild()->getData());
+	  delete child->getLChild();
+	  child->setLChild(NULL);
+	}
+	else{
+	  
+	}
+      }
+    }
+  }
+  //CASE 3 (right child is present)
+  else if(child->getRChild()){
+    cout << "CASE 3" << endl; //DELETE LATER
+    
+    temp = child->getRChild();
+    previous = child;
+    while(temp->getLChild()){
+      previous = temp;
+      temp = temp->getLChild();
+    }
+    
+    child->setData(temp->getData());
+  
+      if(temp->isRed()){//if temp is red
+	if(previous->getRChild() == temp){//if temp is RChild
+	  if(temp->getRChild()){
+	    previous->setRChild(temp->getRChild());
+	    temp->getRChild()->setParent(previous);
+	    delete temp;
+	  }
+	  else{
+	    previous->setRChild(NULL);
+	    delete temp;
+	  }
+	}
+	else{// if temp is LChild
+	  if(temp->getRChild()){
+	    previous->setLChild(temp->getRChild());
+	    temp->getRChild()->setParent(previous);
+	    delete temp;
+	  }
+	  else{
+	    previous->setLChild(NULL);
+	    delete temp;
+	  }
+	}
+	
+      }
+      else{//if temp is black
+	if(previous->getRChild() == temp){//temp is RChild
+	  if(temp->getRChild()){//if there is a rChild
+	    if(temp->getRChild()->isRed()){//if the child is red
+	      temp->setData(temp->getRChild()->getData());
+	      delete temp->getRChild();
+	      temp->setRChild(NULL);
+	    }
+	    else{//if the child is black
+     
+	    }
+	  }
+	  else{//if there is not a RChild
+	    
+	  }
+	}
+	else{//temp is LChild
+	  if(temp->getRChild()){//if there is a rChild
+	    if(temp->getRChild()->isRed()){//if the child is red
+	      temp->setData(temp->getRChild()->getData());
+	      delete temp->getRChild();
+	      temp->setRChild(NULL);
+	    }
+	    else{//if the child is black
+	      
+	    }
+	  }
+	  else{//if there is not a RChild
+	    
+	  }
+	}
+      }
+  }
+}
+
+void repairNode(tNode* x, tNode* &head){
+  tNode* parent = x->getParent();
+  
+  if(x->getLChild()){
+    if(x == parent->getRChild()){
+      parent->setRChild(x->getLChild());
+      x->getLChild()->setParent(parent);
+    }
+    else{
+      parent->setLChild(x->getLChild());
+      x->getLChild()->setParent(parent);
+      delete x;
+    }
+  }
+  else if(x->getRChild()){
+    if(x == parent->getRChild()){
+      parent->setRChild(x->getRChild());
+      x->getRChild()->setParent(parent);
+    }
+    else{
+      parent->setLChild(x->getRChild());
+      x->getRChild()->setParent(parent);
+    }
+  }
+}
+
+void searchTWrapper(tNode* root, int data){
+  if(search(root, data)){//if returns true
+    //tell user the data is in the tree
+    cout << data << " is in the tree!" << endl;
+  }
+  else{//if returns false
+    //tell user the data is not in the tree
+    cout << data << " is not in the tree!" << endl;
+  }
+}
+
+bool search(tNode* root, int data){
+  if(!root){//if we reach a null pointer
+    //return false
+    return false;
+  }
+  else{
+    if(data == root->getData()){//if data was found
+      //return true
+      return true; 
+    }
+    else if(data < root->getData()){//if data is less than current node's data, go left
+      return search(root->getLChild(), data);
+    }
+    else if(data > root->getData()){//if data is greater than current node's data, go right
+      return search(root->getRChild(), data);
+    }
+  }
+}
+
+/*
+void deleteRoot(){
+
+}
+
+
+void repairWrapper(tNode* &head, tNode* x){
+  tNode* sibling = NULL;
+  tNode* parent = x->getParent();
+  bool isLChild;
+
+  //determine if child is left or right
+  if(parent->getLChild() == x){
+    isLChild = true;
+  }
+  else if(parent->getRChild() == x){
+    isLChild = false;
+  }
+
+  if(isLChild){
+    sibling = parent->getRChild();
+  }
+  else{
+    sibling = parent->getLChild();
+  }
+
+  if(sibling){//if sibling exists
+    if(sibling->isRed()){//if sibling is red
+      repairCase1(head, x, sibling, parent, isChild);
+    }
+  }
+  
+}
+
+
+void repairCase1(tNode* &head, tNode* x, tNode* sibling, tNode* parent, bool isLChild){
+
+      recolor(sibling);
+      recolor(parent);
+      
+      if(isLChild){//if x is LChild
+	rotateLeft(parent);
+	sibling = parent->getRChild();
+      }
+      else{//if x is RChild
+	rotateRight(parent);
+	sibling = parent->getLChild();
+      }
+
+      
+}
+
+void repairCase2(tNode* &head, tNode* x, tNode* sibling, tNode* parent, bool isLChild){
+
+}
+
+void repairCase3(tNode* &head, tNode* x, tNode* sibling, tNode* parent, bool isLChild){
+
+}
+
+void repairCase4(tNode* &head, tNode* x, tNode* sibling, tNode* parent, bool isLChild){
+
+}
+
+*/
